@@ -1,9 +1,24 @@
-body {
-   font-family: 'Pacifico';
-   display: flex;
-   justify-content: center;
+#gameArea {
+    width: 400px;
+    height: 600px;
+    border: 1px solid black;
+    position: relative;
+    overflow: hidden;
 }
-canvas {
-   border: 1px solid #0a3cda;
-   margin: 10px;
+ 
+#bird {
+    width: 50px;
+    height: 50px;
+    background-color: yellow;
+    position: absolute;
+    top: 250px;
+    left: 50px;
+}
+ 
+.pipe {
+    width: 60px;
+    height: 300px;
+    background-color: green;
+    position: absolute;
+    top: 0;
 }
