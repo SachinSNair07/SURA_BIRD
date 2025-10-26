@@ -1,24 +1,29 @@
-#gameArea {
-    width: 400px;
-    height: 600px;
-    border: 1px solid black;
-    position: relative;
-    overflow: hidden;
+body {
+  background: linear-gradient(to bottom, #89cff0, #ffffff);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: "Poppins", sans-serif;
+  margin: 0;
+  height: 100vh;
 }
- 
-#bird {
-    width: 50px;
-    height: 50px;
-    background-color: yellow;
-    position: absolute;
-    top: 250px;
-    left: 50px;
+
+.title {
+  font-size: 2rem;
+  color: #004aad;
+  margin: 20px;
+  text-shadow: 1px 1px 2px white;
 }
- 
-.pipe {
-    width: 60px;
-    height: 300px;
-    background-color: green;
-    position: absolute;
-    top: 0;
+
+#gameCanvas {
+  border: 3px solid #004aad;
+  border-radius: 10px;
+  background-color: #a0e0a9;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+.info {
+  color: #222;
+  font-size: 1rem;
+  margin-top: 10px;
 }
