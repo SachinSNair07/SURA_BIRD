@@ -1,256 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sura Bird 🕊️</title>
-
-<style>
-@font-face {
-  font-family: flappybird;
-  src: url('https://fonts.cdnfonts.com/s/13889/04B_19__.TTF') format('truetype');
-}
-
-body {
-  margin: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  background: linear-gradient(to bottom, #87ceeb, #fff);
-}
-
-#Canvas {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
-#Birdy {
-  width: 3%;
-  padding-bottom: 2%;
-  background-image: url('https://i.imgur.com/3W1HHRy.png');
-  background-size: 300%;
-  position: absolute;
-  top: 50%;
-  left: 20%;
-  z-index: 150;
-}
-
-.FallenBirdy {
-  transform: rotate(90deg);
-}
-
-.Pipe {
-  position: absolute;
-  top: 0;
-  left: 100%;
-  width: 5%;
-  background: greenyellow;
-  animation: PipeMove 8s linear infinite;
-}
-
-@keyframes PipeMove {
-  from { left: 100%; }
-  to { left: -25%; }
-}
-
-.paused {
-  animation-play-state: paused;
-}
-
-.noSelect {
-  user-select: none;
-}
-
-#PauseButton {
-  position: absolute;
-  top: 2%;
-  right: 2%;
-  background: orange;
-  padding: 10px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-family: flappybird;
-  font-size: 1.5vw;
-  z-index: 100;
-}
-
-#CurrentScoreCard {
-  position: absolute;
-  left: 50%;
-  top: 10%;
-  transform: translateX(-50%);
-  font-family: flappybird;
-  color: white;
-  font-size: 3vw;
-  text-shadow: 2px 2px 0 #000;
-}
-
-#LostScoreScreen {
-  position: absolute;
-  left: 50%;
-  top: 40%;
-  transform: translate(-50%, -50%);
-  background: #ded895;
-  padding: 15px 30px;
-  border-radius: 8px;
-  border: 2px solid #000;
-  display: none;
-  text-align: center;
-  font-family: flappybird;
-  color: white;
-  text-shadow: 2px 2px 0 #000;
-  z-index: 200;
-}
-
-#ResetButton {
-  background: #ffa500;
-  border: none;
-  padding: 8px 20px;
-  border-radius: 5px;
-  font-size: 1.2vw;
-  cursor: pointer;
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sura Bird 🕊️</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div id="Canvas">
-  <div id="Birdy"></div>
-  <div id="PauseButton">⏸️</div>
+  <div id="Canvas">
+    <div id="Birdy"></div>
+    <div id="PauseButton">⏸️</div>
 
-  <div id="CurrentScoreCard">Score: <span id="CurrentScore">0</span></div>
+    <div id="CurrentScoreCard">
+      Score: <span id="CurrentScore">0</span>
+    </div>
 
-  <div id="LostScoreScreen">
-    <div>Game Over!</div>
-    <div>Score: <span id="FinalScore">0</span></div>
-    <div>Best: <span id="BestScore">0</span></div>
-    <button id="ResetButton">Restart</button>
+    <div id="LostScoreScreen">
+      <div>Game Over!</div>
+      <div>Score: <span id="FinalScore">0</span></div>
+      <div>Best: <span id="BestScore">0</span></div>
+      <button id="ResetButton">Restart</button>
+    </div>
   </div>
-</div>
 
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script>
-$(function(){
-  const canvas = $('#Canvas');
-  const bird = $('#Birdy');
-  const pauseBtn = $('#PauseButton');
-  const resetBtn = $('#ResetButton');
-  const scoreEl = $('#CurrentScore');
-  const finalEl = $('#FinalScore');
-  const bestEl = $('#BestScore');
-  const lostScreen = $('#LostScoreScreen');
-
-  let paused = false, lost = false, score = 0, velocity = 0, gravity = 0.3, lift = -6;
-  let pipes = [];
-
-  function startGame() {
-    resetGame();
-    createPipe();
-    gameLoop = setInterval(loop, 30);
-  }
-
-  function resetGame() {
-    clearInterval(gameLoop);
-    $('.Pipe').remove();
-    lost = false;
-    paused = false;
-    velocity = 0;
-    score = 0;
-    scoreEl.text(score);
-    bird.css({top: '50%', transform: 'rotate(0deg)'});
-    lostScreen.hide();
-  }
-
-  function createPipe() {
-    if (lost) return;
-    const gap = 28;
-    const minHeight = 10;
-    const topHeight = Math.random() * (70 - gap - minHeight) + minHeight;
-    const bottomTop = topHeight + gap;
-    const bottomHeight = 100 - bottomTop;
-
-    $('<div/>').addClass('Pipe').css('height', topHeight + '%').appendTo(canvas);
-    $('<div/>').addClass('Pipe').css({height: bottomHeight + '%', top: bottomTop + '%'}).appendTo(canvas);
-  }
-
-  function fall() {
-    if (paused || lost) return;
-    velocity += gravity;
-    let newTop = bird.position().top + velocity;
-    if (newTop < 0) newTop = 0;
-    if (newTop + bird.height() > canvas.height()) endGame();
-    bird.css('top', newTop + 'px');
-  }
-
-  function jump() {
-    if (paused || lost) return;
-    velocity = lift;
-  }
-
-  function checkCollisions() {
-    $('.Pipe').each(function() {
-      const pipe = $(this);
-      const b = bird[0].getBoundingClientRect();
-      const p = pipe[0].getBoundingClientRect();
-      if (!(b.right < p.left || b.left > p.right || b.bottom < p.top || b.top > p.bottom)) {
-        endGame();
-      }
-    });
-  }
-
-  function incrementScore() {
-    $('.Pipe').each(function() {
-      const pipe = $(this);
-      if (!pipe.data('scored') && pipe.position().left + pipe.width() < bird.position().left) {
-        score++;
-        pipe.data('scored', true);
-        scoreEl.text(score);
-      }
-    });
-  }
-
-  function loop() {
-    if (paused || lost) return;
-    fall();
-    checkCollisions();
-    incrementScore();
-  }
-
-  function endGame() {
-    lost = true;
-    clearInterval(gameLoop);
-    $('.Pipe').addClass('paused');
-    lostScreen.show();
-    finalEl.text(score);
-    let best = localStorage.getItem('best') || 0;
-    if (score > best) {
-      best = score;
-      localStorage.setItem('best', best);
-    }
-    bestEl.text(best);
-  }
-
-  pauseBtn.on('click', function(e){
-    e.stopPropagation();
-    paused = !paused;
-    $(this).text(paused ? '▶️' : '⏸️');
-  });
-
-  resetBtn.on('click', startGame);
-  canvas.on('mousedown touchstart', jump);
-  $(document).on('keydown', e => {
-    if (e.which === 32) jump();
-    if (e.which === 80) paused = !paused;
-  });
-
-  setInterval(() => {
-    if (!paused && !lost) createPipe();
-  }, 2200);
-
-  startGame();
-});
-</script>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
+
+
 
 
