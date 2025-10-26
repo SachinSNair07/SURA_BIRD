@@ -1,25 +1,196 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sura Bird</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sura Bird 🕊️</title>
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: linear-gradient(to bottom, #87CEEB, #fff);
+    font-family: Arial, sans-serif;
+  }
+
+  canvas {
+    display: block;
+    margin: 0 auto;
+    background: linear-gradient(to bottom, #a3e3ff, #d4f3ff);
+  }
+
+  h1 {
+    position: absolute;
+    top: 10px;
+    width: 100%;
+    text-align: center;
+    color: #004466;
+    font-size: 26px;
+    letter-spacing: 1px;
+  }
+
+  #restartBtn {
+    position: absolute;
+    display: none;
+    left: 50%;
+    top: 55%;
+    transform: translate(-50%, -50%);
+    padding: 12px 24px;
+    background: #ffcc00;
+    border: none;
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  #restartBtn:hover {
+    background: #ffaa00;
+  }
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <h1>Sura Bird 🐤</h1>
-    <p class="sub">Tap or Press Space to Fly!</p>
-    <canvas id="game" width="480" height="640"></canvas>
+<h1>🕊️ Sura Bird Game</h1>
+<canvas id="gameCanvas" width="400" height="500"></canvas>
+<button id="restartBtn">Restart</button>
 
-    <div class="controls">
-      <button id="startBtn">Start Game</button>
-      <div class="score">Score: <span id="score">0</span></div>
-    </div>
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
 
-    <footer>Made by Sachin S Nair · Trideva Interactive</footer>
-  </div>
+let bird = {
+  x: 80,
+  y: canvas.height / 2,
+  radius: 15,
+  velocity: 0,
+  gravity: 0.4,
+  lift: -7
+};
 
-  <script src="script.js"></script>
+let pipes = [];
+let pipeWidth = 60;
+let pipeGap = 130;
+let pipeSpeed = 2.2;
+let frameCount = 0;
+let gameOver = false;
+let score = 0;
+
+const restartBtn = document.getElementById("restartBtn");
+
+function resetGame() {
+  bird.y = canvas.height / 2;
+  bird.velocity = 0;
+  pipes = [];
+  frameCount = 0;
+  gameOver = false;
+  score = 0;
+  restartBtn.style.display = "none";
+  animate();
+}
+
+function drawBird() {
+  ctx.beginPath();
+  ctx.arc(bird.x, bird.y, bird.radius, 0, Math.PI * 2);
+  ctx.fillStyle = "#ff6666";
+  ctx.fill();
+  ctx.closePath();
+}
+
+function drawPipes() {
+  pipes.forEach(pipe => {
+    ctx.fillStyle = "#228B22";
+    ctx.fillRect(pipe.x, 0, pipeWidth, pipe.top);
+    ctx.fillRect(pipe.x, pipe.bottom, pipeWidth, canvas.height - pipe.bottom);
+  });
+}
+
+function updateBird() {
+  bird.velocity += bird.gravity;
+  bird.y += bird.velocity;
+
+  if (bird.y + bird.radius > canvas.height) {
+    gameOver = true;
+  }
+  if (bird.y - bird.radius < 0) {
+    bird.y = bird.radius;
+    bird.velocity = 0;
+  }
+}
+
+function updatePipes() {
+  if (frameCount % 100 === 0) {
+    let topHeight = Math.floor(Math.random() * 120) + 40;
+    pipes.push({
+      x: canvas.width,
+      top: topHeight,
+      bottom: topHeight + pipeGap
+    });
+  }
+
+  pipes.forEach(pipe => pipe.x -= pipeSpeed);
+  pipes = pipes.filter(pipe => pipe.x + pipeWidth > 0);
+}
+
+function checkCollision() {
+  pipes.forEach(pipe => {
+    if (
+      bird.x + bird.radius > pipe.x &&
+      bird.x - bird.radius < pipe.x + pipeWidth &&
+      (bird.y - bird.radius < pipe.top || bird.y + bird.radius > pipe.bottom)
+    ) {
+      gameOver = true;
+    }
+  });
+}
+
+function drawScore() {
+  ctx.fillStyle = "#004466";
+  ctx.font = "20px Arial";
+  ctx.fillText("Score: " + score, 15, 30);
+}
+
+function animate() {
+  if (gameOver) {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#fff";
+    ctx.font = "28px Arial";
+    ctx.fillText("Game Over!", 125, 230);
+    ctx.font = "20px Arial";
+    ctx.fillText("Score: " + score, 170, 260);
+    restartBtn.style.display = "block";
+    return;
+  }
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  updateBird();
+  updatePipes();
+  checkCollision();
+
+  drawPipes();
+  drawBird();
+  drawScore();
+
+  // Increase score when pipe passes
+  pipes.forEach(pipe => {
+    if (pipe.x + pipeWidth === bird.x) {
+      score++;
+    }
+  });
+
+  frameCount++;
+  requestAnimationFrame(animate);
+}
+
+window.addEventListener("keydown", () => {
+  if (!gameOver) {
+    bird.velocity = bird.lift;
+  }
+});
+
+restartBtn.addEventListener("click", resetGame);
+
+animate();
+</script>
 </body>
 </html>
